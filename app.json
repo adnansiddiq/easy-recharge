@@ -2,6 +2,7 @@
   "expo": {
     "name": "easy-recharge",
     "slug": "easy-recharge",
+    "owner": "adnansiddiq",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -24,7 +25,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.adnansiddiq.easyrecharge"
     },
     "web": {
       "favicon": "./assets/favicon.png"
