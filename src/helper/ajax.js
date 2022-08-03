@@ -45,9 +45,10 @@ export default {
         }
     },
 
-    async getRequestDetails(accessToken, requestId) {
+    async getRequestDetails(admin, accessToken, requestId) {
         try {
-            const response = await fetch(apiHost + '/api/v1/user-requests/' + requestId, {
+            const api = admin ? 'admin' : 'api';
+            const response = await fetch(apiHost + `/${api}/v1/user-requests/` + requestId, {
                 method : 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -63,10 +64,13 @@ export default {
         }
     },
 
-    async getRechargeRequests(accessToken, page) {
+    async getRechargeRequests(admin, accessToken, page, status) {
 
         try {
-            const response = await fetch(apiHost + `/api/v1/user-requests?page=${page}`, {
+            const api = admin ? 'admin' : 'api';
+            const path = `/${api}/v1/user-requests?page=${page}&status=${status}`
+            console.log(path)
+            const response = await fetch(apiHost + path, {
                 method : 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -130,6 +134,30 @@ export default {
                     'Content-Type': 'application/json',
                     'Authorization' : 'Bearer ' + accessToken
                 }
+            });
+            const responseJson = await response.json();
+            return responseJson;
+        } catch (error) {
+            console.log(error);
+            return {
+                'error': error
+            }
+        }
+    },
+
+    async rejectRechargeRequest(accessToken, requestId, comments) {
+        
+        try {
+            const response = await fetch(apiHost + `/admin/v1/user-requests/${requestId}/reject` , {
+                method : 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization' : 'Bearer ' + accessToken
+                },
+                body: JSON.stringify({
+                    comments: comments
+                })
             });
             const responseJson = await response.json();
             return responseJson;

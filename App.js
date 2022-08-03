@@ -6,6 +6,7 @@ import Splash from './src/components/Splash';
 
 import { Provider } from 'react-redux'  
 import store from './src/reducers/store';
+import AdminNavigation from './src/components/admin/AdminNavigation';
 
 class App extends React.Component {
 
@@ -40,6 +41,7 @@ class App extends React.Component {
   }
 
   setAuth = (response) => {
+    console.log(response.user);
     this.setState({
       accessToken: response.access_token,
       user: response.user
@@ -63,9 +65,18 @@ class App extends React.Component {
         <Splash />
       );
     } else if (this.state.accessToken != null) {
-      return (
-        <Navigation user={this.state.user} accessToken={this.state.accessToken} logout={ this.logout.bind(this) } />
-      );
+
+      if (this.state.user.role == 'user') {
+        return (
+          <Navigation user={this.state.user} accessToken={this.state.accessToken} logout={ this.logout.bind(this) } />
+        );
+      }
+
+      if (this.state.user.role == 'admin') {
+        return (
+          <AdminNavigation user={this.state.user} accessToken={this.state.accessToken} logout={ this.logout.bind(this) } />
+        );
+      }
     } else {
 
       return (
