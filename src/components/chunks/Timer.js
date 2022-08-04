@@ -32,7 +32,6 @@ export default class Timer extends Component {
     }
 
     componentWillUnmount() {
-        console.log("Timer Unmount");
         clearInterval(this.state.interval);
     }
 

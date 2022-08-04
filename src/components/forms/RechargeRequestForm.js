@@ -19,6 +19,11 @@ export default class RechargeRequestForm extends Component {
     super(props);
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+
+    return (nextProps.rechargeType !== this.props.rechargeType)
+  }
+
   render() {
 
     return (

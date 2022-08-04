@@ -3,41 +3,34 @@ import React, { Component } from 'react'
 
 export default class RejectModel extends Component {
 
-    state = {
-        showModel : false,
-        comment: null,
-    }
-
     constructor(props) {
         super(props)
         this.state = {
-            showModel: props.isOpen,
+            showModal: false,
             comment: 'Insufficent Balance: ' + props.balance,
         }
     }
 
-    static getDerivedStateFromProps(props, state) {
+    closeModal(reject) {
+        this.setState({
+            showModal: false
+        })
 
-        if (props.isOpen != state.showModel) {
-            return {
-                showModel: props.isOpen
-            };
+        if (reject === true) {
+            this.props.closeModal(this.state.comment)
         }
-
-        return null
-
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        return nextState.showModel != this.state.showModel;
+        return nextState.showModal != this.state.showModal;
     }
 
   render() {
 
-    const { balance, closeModel } = this.props
+    const { balance, closeModal } = this.props
 
     return (
-        <Modal isOpen={ this.state.showModel } onClose={() => closeModel() } >
+        <Modal isOpen={ this.state.showModal } onClose={() => this.closeModal() } >
             <Modal.Content maxWidth="400px">
                 <Modal.CloseButton />
                 <Modal.Header >Reject Request</Modal.Header>
@@ -51,11 +44,12 @@ export default class RejectModel extends Component {
                 <Modal.Footer>
                     
                     <Button flex={1} variant="ghost" colorScheme="blueGray" onPress={() => {
-                        closeModel(false, this.state.comment)
+                    
+                        this.closeModal(false)
                     }}>Cancel</Button>
 
                     <Button flex={1} variant='solid' colorScheme={'red'} onPress={() => {
-                        closeModel(true, this.state.comment)
+                        this.closeModal(true)
                     }}> Reject </Button>
 
                 </Modal.Footer>

@@ -13,7 +13,7 @@ import ajax from '../helper/ajax';
 import RechargeRequestItem from './chunks/RechargeRequestItem';
 import Loading from './Loading';
 import LoadMore from './chunks/LoadMore';
-import { AntDesign, Entypo, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Entypo, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 
 export default class RechargeRequestList extends Component {
 
@@ -21,30 +21,35 @@ export default class RechargeRequestList extends Component {
         accessToken: PropTypes.string.isRequired,
     }
 
-    state = {
-        dataLoaded: false,
-        data : [],
-        page: 1,
-        haveMore: false,
-        loading: false,
-        status: 'pending',
-    }
-
     constructor(props) {
         super(props);
+
+        this.state = {
+            data : [],
+            page: 1,
+            haveMore: false,
+            status: 'pending',
+        }
+
+        this.loadingRef = React.createRef()
     }
 
     async componentDidMount() {
-        console.log("Recharge Requests Mount");
+        
         this.loadData();
     }
 
-    async loadData() {
-        await this.setState({
-            loading: true,
-        })
+    showLoding(show) {
+        this.loadingRef.current.setState({
+            show: show
+        });
+    }
 
-        console.log("Before call: " + this.state.status)
+    async loadData() {
+
+        if (this.state.page === 1) {
+            this.showLoding(true)
+        } 
 
         const response = await ajax.getRechargeRequests(
             this.props.admin,
@@ -52,30 +57,26 @@ export default class RechargeRequestList extends Component {
             this.state.page, 
             this.state.status,
         );
+
+        this.showLoding(false)
         
         this.setState({
             data : [ ...this.state.data, ...response.user_requests],
-            dataLoaded : true,
             page: this.state.page + 1,
             haveMore: response.user_requests.length == 25,
-            loading: false,
         });
     }
 
-    fileterAction(status) {
-        console.log(status)
-        
-        this.setState({
-            dataLoaded: false,
+    async fileterAction(status) {
+
+        await this.setState({
             data : [],
             page: 1,
             haveMore: false,
-            loading: false,
             status: status,
         });
 
         this.loadData()
-
     }
 
     itemClicked(requestId) {
@@ -90,19 +91,19 @@ export default class RechargeRequestList extends Component {
     return (
         <NativeBaseProvider>
             
-            { !this.state.dataLoaded && <Loading /> }
+            { <Loading ref={ this.loadingRef } /> }
 
             <Box flex={1} bg='blue.100' safeArea>
 
                 <FlatList
                     flex={1} 
                     data={ this.state.data } 
-                    renderItem={ ( {
+                    renderItem={ ({
                         item
                     }) => <RechargeRequestItem request={item} onSelect={ this.itemClicked.bind(this) } /> } 
                     keyExtractor={item => item.id} 
                     ListFooterComponent={ ( this.state.haveMore &&
-                        <LoadMore loading={ this.state.loading } loadMore={ this.loadData.bind(this) }/>
+                        <LoadMore loadMore={ this.loadData.bind(this) }/>
                     )} />
 
                 <Box h={60} bg='white' roundedTop='md' overflow="hidden" borderColor='gray.200' borderWidth="1" shadow={1}>

@@ -5,37 +5,24 @@ import {
     Center, 
     Divider, 
     Flex, 
-    FormControl, 
     Heading, 
     Image, 
-    Input, 
-    Modal, 
     NativeBaseProvider, 
     Text, 
     Toast,
-    useColorModeValue
 } from 'native-base'
 import ajax from '../helper/ajax';
 import moment from 'moment'
 import Loading from './Loading';
 import Timer from './chunks/Timer';
-import ShowNumber from './chunks/ShowNumber';
 import VerifyInfo from './chunks/VerifyInfo';
 import ShowDateTime from './chunks/ShowDateTime';
 import RejectModel from './chunks/RejectModel';
-import SentModel from './chunks/SentModel';
+import { Modal } from 'react-native';
+import CameraModel from './chunks/CameraModel';
+import { Camera } from 'expo-camera';
 
 export default class RechargeRequestDetail extends Component {
-
-    state = {
-        dataLoaded: false,
-        userRequest: null,
-        cancelTime: 0,
-        timeout: null,
-        showRejectModel: false,
-        showSentModel: false,
-    };
-
     images = {
         jazz : require('../../assets/jazz.png'),
         ufone: require('../../assets/ufone.png'),
@@ -56,16 +43,39 @@ export default class RechargeRequestDetail extends Component {
 
     constructor(props) {
         super(props);
+
+        this.state = {
+            userRequest: null,
+            cancelTime: 0,
+            imageUrl: null,
+        };
+
+        this.timeout = null
+
+        this.rejectModalRef = React.createRef()
+        this.loadingRef = React.createRef()
+        this.completeModalRef = React.createRef()
     }
 
     componentDidMount() {
+        if (this.props.admin) {
+            this.takePermission()
+        }
         this.getRequestDetails()
+        console.log(this.rejectModalRef)
+    }
+
+    async takePermission() {
+        const { status } = await Camera.requestCameraPermissionsAsync();
+
+        if (status !== 'granted') {
+            Toast.show({ title: `Camera Permission ${status}`})
+        }
     }
 
     componentWillUnmount() {
-        console.log("Detail UnMount");
-        if (this.state.timeout) {
-            clearTimeout(this.state.timeout);
+        if (this.timeout) {
+            clearTimeout(this.timeout);
         }
     }
 
@@ -73,30 +83,32 @@ export default class RechargeRequestDetail extends Component {
 
         this.setState({
             cancelTime: 0,
-            dataLoaded: false,
-            timeout: null,
+            imageUrl: null,
         });
+
+        this.showLoding(true)
+        if (this.timeout) {
+            clearTimeout(this.timeout);
+        }
 
         const response = await ajax.getRequestDetails(this.props.admin, this.props.accessToken, this.props.route.params.request_id);
 
-        console.log(response)
-
         const cancelTime = this.getCancelTime(response.user_request);
 
-        var timeout = null;
         if (cancelTime > 0) {
-            timeout = setTimeout(() => {
+            this.timeout = setTimeout(() => {
                 this.setState({
                     cancelTime: 0
                 });
             }, cancelTime*1000);
         }
 
+        this.showLoding(false)
+
         this.setState({
-            dataLoaded: true,
             userRequest : response.user_request,
             cancelTime: cancelTime,
-            timeout: timeout,
+            imageUrl: response.user_request.media == null ? null :response.user_request.media.path,
         });
     }
 
@@ -156,9 +168,7 @@ export default class RechargeRequestDetail extends Component {
 
     async cancelRequest() {
 
-        this.setState({
-            dataLoaded: false
-        });
+        this.showLoding(true)
 
         const response = await ajax.cancelRechargeRequest(this.props.accessToken, this.props.route.params.request_id);
         
@@ -168,20 +178,28 @@ export default class RechargeRequestDetail extends Component {
             Toast.show({ title: response.message})
         }
 
-        if (this.state.timeout) {
-            clearTimeout(this.state.timeout);
+        if (this.timeout) {
+            clearTimeout(this.timeout);
         }
 
-        this.getRequestDetails()
+        this.showLoding(false)
+
+        this.setState({
+            userRequest : response.user_request,
+            cancelTime: 0,
+            imageUrl: response.user_request.media == null ? null :response.user_request.media.path,
+        });
+    }
+
+    showLoding(show) {
+        this.loadingRef.current.setState({
+            show: show
+        });
     }
 
     async rejectRequest(comment) {
 
-        console.log("Reject Request")
-
-        this.setState({
-            dataLoaded: false
-        });
+        this.showLoding(true)
 
         const response = await ajax.rejectRechargeRequest(this.props.accessToken, this.props.route.params.request_id, comment);
         
@@ -191,42 +209,56 @@ export default class RechargeRequestDetail extends Component {
             Toast.show({ title: response.message})
         }
 
-        if (this.state.timeout) {
-            clearTimeout(this.state.timeout);
-        }
-
-        this.getRequestDetails()
-    }
-
-    closeRejectModel(reject, comment) {
+        this.showLoding(false)
 
         this.setState({
-            showRejectModel: false,
-        })
-
-        if (reject) {
-            this.rejectRequest(comment)
-        }
+            userRequest : response.user_request,
+            cancelTime: 0,
+            imageUrl: response.user_request.media == null ? null : response.user_request.media.path,
+        });
     }
 
-    closeSentModel() {
-        console.log('sent action')
+    async completeRequest(image) {
+
+        this.showLoding(true)
+
+        const response = await ajax.completeRechargeRequest(this.props.accessToken, this.props.route.params.request_id, image);
+        
+        if (response.error) {
+            Toast.show({ title: response.error})
+        } else if (response.message) {
+            Toast.show({ title: response.message})
+        }
+
+        this.showLoding(false)
 
         this.setState({
-            showSentModel: false,
-        })
+            userRequest : response.user_request,
+            cancelTime: 0,
+            imageUrl: response.user_request.media == null ? null :response.user_request.media.path,
+        });
+    }
+
+    closeRejectModal(comment) {
+
+        this.rejectRequest(comment)
+    }
+
+    closeSentModal(image) {
+
+        this.completeRequest(image)
     }
 
   render() {
 
-    console.log("Detail Render");
-
     const request = this.state.userRequest;
+
+    console.log("Detail Render")
 
     return (
     <NativeBaseProvider>
 
-        { !this.state.dataLoaded && <Loading /> }
+        { <Loading ref={ this.loadingRef } /> }
 
         <Box flex={1} bg='blue.100' safeArea>
 
@@ -280,6 +312,12 @@ export default class RechargeRequestDetail extends Component {
                             phoneNumber={ request.user.mobile_no } 
                             balance={ request.user.available_balance } />
                     } 
+
+                    { (!this.isPending() &&  this.state.imageUrl != null) &&
+                        <Box flex={1} mt={3} p={2} bg='amber.100' rounded={'lg'} borderWidth={1} borderColor={'gray.400'}>
+                            <Image flex={1} source={ {uri : this.state.imageUrl } } alt="Mobile Recharge" resizeMode={"contain"} />
+                        </Box>
+                    }
                     
                     { (!this.isPending() &&  request.comments != null) &&
                         <Box flex={1} mt={3} p={2} bg='amber.100' rounded={'lg'} borderWidth={1} borderColor={'gray.400'}>
@@ -304,8 +342,17 @@ export default class RechargeRequestDetail extends Component {
                 { (request && this.isPending() && this.props.admin) &&
                     <Box h={50} w='100%' mt={2}>
                         <Flex direction='row'>
-                            <Button flex={1} mr={1} colorScheme="rose" onPress={ () => { this.setState({ showRejectModel: true }) } } >Reject</Button>
-                            <Button flex={1} ml={1} colorScheme="green" onPress={ () => { this.setState({ showSentModel: true }) } } >Sent</Button>
+                            <Button flex={1} mr={1} colorScheme="rose" onPress={ () => { 
+                                this.rejectModalRef.current.setState({
+                                    showModal: true
+                                })
+                            } } >Reject</Button>
+                            <Button flex={1} ml={1} colorScheme="green" onPress={ () => { 
+                                console.log("Complete call")
+                                this.completeModalRef.current.setState({
+                                    show: true
+                                }) 
+                            } } >Sent</Button>
                         </Flex>
                     </Box>
                 }
@@ -318,11 +365,13 @@ export default class RechargeRequestDetail extends Component {
 
         </Box>
 
-        { request && 
-            <RejectModel isOpen={ this.state.showRejectModel } balance={request.user.available_balance} closeModel={ this.closeRejectModel.bind(this) } />
+        { (request && this.props.admin) && 
+            <RejectModel ref={ this.rejectModalRef } balance={request.user.available_balance} closeModal={ this.closeRejectModal.bind(this) } />
         }
 
-        {request && <SentModel isOpen={ this.state.showSentModel } balance={request.user.available_balance} closeModel={ this.closeSentModel.bind(this) } />}
+        { (request && this.props.admin) &&
+            <CameraModel ref={ this.completeModalRef } onSubmit={ this.closeSentModal.bind(this) } />
+        }
 
     </NativeBaseProvider>  
     )

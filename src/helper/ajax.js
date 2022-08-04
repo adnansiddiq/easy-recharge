@@ -1,3 +1,5 @@
+import axios from "axios";
+
 const apiHost = 'https://dev.skyimf.com'
 
 export default {
@@ -159,6 +161,41 @@ export default {
                     comments: comments
                 })
             });
+            const responseJson = await response.json();
+            return responseJson;
+        } catch (error) {
+            console.log(error);
+            return {
+                'error': error
+            }
+        }
+    },
+
+    async completeRechargeRequest(accessToken, requestId, image) {
+
+        try {
+
+            let body = new FormData();
+            let imageName = image.split("/").pop();
+
+            body.append('media', {
+                uri: image,
+                name: image.split("/").pop(),
+                type: 'image/' + imageName.split('.').pop(),
+            });
+
+            console.log(body)
+
+            const response = await fetch(apiHost + `/admin/v1/user-requests/${requestId}/sent` , {
+                method : 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization' : 'Bearer ' + accessToken
+                },
+                body: body,
+            });
+
             const responseJson = await response.json();
             return responseJson;
         } catch (error) {

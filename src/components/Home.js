@@ -35,12 +35,12 @@ export default class Home extends Component {
     }
 
     componentDidMount() {
-        console.log("Home Mounted");
+        console.log("Home componentDidMount");
         this.getMe();
     }
 
     componentDidUpdate(prevProps) {
-        console.log("Home Upodated");
+        console.log("Home componentDidUpdate");
 
         if (JSON.stringify(prevProps.route.params) != JSON.stringify(this.props.route.params)) {
 
