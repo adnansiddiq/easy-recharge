@@ -1,4 +1,4 @@
-const apiHost = 'https://dev.skyimf.com'
+const apiHost = 'https://localhost'
 
 export default {
 
