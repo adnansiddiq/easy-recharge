@@ -14,7 +14,7 @@ export default class Transaction extends Component {
         easy_paisa: require('../../../assets/easypaisa.png')
     };
 
-    getStateDate() {
+    getStateDate = () => {
         const { request } = this.props;
 
         if (request.sent_at != null) {
@@ -30,7 +30,7 @@ export default class Transaction extends Component {
         }
     }
 
-    getStatusLayout() {
+    getStatusLayout = () => {
         
         const { request } = this.props;
         
@@ -55,7 +55,6 @@ export default class Transaction extends Component {
         return (
                 <Heading fontSize={'md'} color={'blue.400'} textAlign='center'>PENDING</Heading>
             );
-
     }
 
   render() {
@@ -82,7 +81,7 @@ export default class Transaction extends Component {
                 <Heading p={5} 
                     fontSize={'2xl'} 
                     alignSelf={'center'} 
-                    color={'green.600'} 
+                    color={'red.600'} 
                     minW='90' 
                     textAlign='center' 
                     bg={'blue.100'} 

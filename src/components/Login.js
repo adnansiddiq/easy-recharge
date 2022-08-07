@@ -13,37 +13,44 @@ export default class Login extends Component {
     state = {
         phoneNumber: "03217064276",
         pin: "123456789",
-        loading: false,
     };
 
     constructor(props) {
         super(props);
+
+        this.loadingRef = React.createRef()
+    }
+
+    showLoding(show) {
+        this.loadingRef.current.setState({
+            show: show
+        });
     }
 
     async login () {
 
-        this.setState({
-            loading: true,
-         })
+        this.showLoding(true)
 
         Keyboard.dismiss();
 
         const response = await ajax.login(this.state.phoneNumber, this.state.pin);
 
-        this.setState({
-            loading: false,
-         })
+        this.showLoding(false)
 
         this.props.onLoginSuccess(response);
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+        return false;
+    }
+
   render() {
+      console.log("Login Render")
     return (
         <NativeBaseProvider>
-            {
-                this.state.loading && <Loading />
-            }
 
+            <Loading ref={this.loadingRef} />
+            
             <Box position='absolute' bg='white' top={0} bottom={0} left={0} right={0} style={{ zIndex: 100}} safeArea>
 
                 <Center flex={1} w="100%" pb={100}>

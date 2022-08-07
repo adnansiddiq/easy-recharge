@@ -4,24 +4,6 @@ import { Text, NativeBaseProvider, Box, Heading, Center } from 'native-base'
 
 class Splash extends React.Component {
 
-    state = {
-        loading: false
-    }
-
-    componentDidMount() {
-
-        this.setState({
-            loading : false
-        });
-
-        setTimeout(() => {
-
-            this.setState({
-                loading : true
-            })
-        }, 3000);
-    }
-
     render() {
         return (
             <NativeBaseProvider>

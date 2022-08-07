@@ -12,31 +12,30 @@ class App extends React.Component {
 
   constructor(props) {
     super(props);
+
+    this.state = {
+      showSplash : true,
+      accessToken : null,
+      user: null,
+    };
+
+    this.timeout = null
   }
 
-  state = {
-    showSplash : true,
-    accessToken : null,
-    user: null,
-    timeout: null,
-  };
+  
 
   componentDidMount() {
-    const timeout = setTimeout(() => {
+    this.timeout = setTimeout(() => {
       this.setState({
         showSplash: false
       });
     }, 3000);
-
-    this.setState({
-      timeout: timeout,
-    });
   }
 
   componentWillUnmount() {
     console.log('App Unmount');
-    if (this.state.timeout) {
-      clearTimeout(this.state.timeout);
+    if (this.timeout) {
+      clearTimeout(this.timeout);
     }
   }
 

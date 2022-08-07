@@ -7,6 +7,7 @@ import RechargeRequest from './RechargeRequest';
 import RechargeRequestDetail from './RechargeRequestDetail';
 import RechargeRequestList from './RechargeRequestList';
 import Transaction from './Transaction';
+import TopupRequestList from './TopupRequestList';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +41,10 @@ export default class Navigation extends Component {
 
           <Stack.Screen name="RechargeRequestList" options={{ title: 'Recharge Requests' }} >
             {(props) => <RechargeRequestList {...props} accessToken={this.props.accessToken} />}
+          </Stack.Screen>
+
+          <Stack.Screen name="TopupRequestList" options={{ title: 'Topup Requests' }} >
+            {(props) => <TopupRequestList {...props} accessToken={this.props.accessToken} />}
           </Stack.Screen>
 
           <Stack.Screen name="Transaction" options={{ title: 'Transactions' }} >
